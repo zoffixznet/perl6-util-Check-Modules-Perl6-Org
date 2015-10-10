@@ -6,27 +6,15 @@ use Mojo::UserAgent;
 use JSON::Meth;
 use 5.010;
 
-my $mu = Mojo::UserAgent->new;
-my $mods = $mu->get('http://modules.perl6.org/')->res->dom;
+my ( $REPO_URL, $SITE_URL ) = qw{
+    https://raw.githubusercontent.com/perl6/ecosystem/master/META.list
+    http://modules.perl6.org/
+};
 
-say "modules.perl6.org currently list " . $mods->find('.name')->size
-    . " modules";
+my $mods     = get_site_mods( $SITE_URL );
+my @eco_mods = get_eco_mods( $REPO_URL );
+check_duplicate_eco_mods( @eco_mods );
 
-$mods = $mods->to_string;
-
-my @eco_mods = split /\n/,  $mu->get('https://raw.githubusercontent.com/perl6/ecosystem/master/META.list')
-    ->res->body;
-
-my %seen;
-for ( @eco_mods ) {
-    next unless $seen{ $_ }++;
-    say "$_ is duplicated in ecosystem META.list";
-}
-
-say "Found " . @eco_mods . " modules listed in ecosystem. "
-    . "Going to fetch each one (this will take a while)";
-
-%seen = ();
 for ( @eco_mods ) {
     my $res = $mu->get( $_ )->res;
     if ( $res->code != 200 ) {
@@ -47,3 +35,33 @@ for ( @eco_mods ) {
 }
 
 say "All done!";
+
+############### SUBS
+
+sub check_duplicate_eco_mods {
+    my @mods = @_;
+
+    my %seen;
+    for ( @mods ) {
+        next unless $seen{ $_ }++;
+        say "$_ is duplicated in ecosystem META.list";
+    }
+}
+
+sub get_eco_mods {
+    my $repo_url = shift;
+
+    my @eco_mods = split /\n/,  $mu->get( $repo_url )->res->body;
+    say "Found " . @eco_mods . " modules listed in ecosystem.";
+    return @eco_mods;
+}
+
+sub get_site_mods {
+    my $site_url = shift;
+
+    my $mods = Mojo::UserAgent->new->get( $site_url )->res->dom;
+    say "modules.perl6.org currently list " . $mods->find('.name')->size
+        . " modules";
+
+    return $mods->to_string;
+}
