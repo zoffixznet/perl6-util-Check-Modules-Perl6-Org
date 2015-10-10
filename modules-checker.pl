@@ -79,7 +79,7 @@ sub get_site_mods {
     my $site_url = shift;
 
     my $mods = Mojo::UserAgent->new->get( $site_url )->res->dom;
-    say "modules.perl6.org currently list " . $mods->find('.name')->size
+    say "modules.perl6.org currently lists " . $mods->find('.name')->size
         . " modules";
 
     return $mods->to_string;

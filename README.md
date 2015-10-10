@@ -28,7 +28,7 @@ Just run `modules-checker.pl` file included in this repo:
 
 ```bash
 $ perl modules-checker.pl
-modules.perl6.org currently list 383 modules
+modules.perl6.org currently lists 383 modules
 Found 389 modules listed in ecosystem.
 IO::Path::More is listed with an empty GitHub URL
 https://raw.githubusercontent.com/FROGGS/p6-Foo-v1.2.0/master/META.info has the same name [Foo] as https://raw.githubusercontent.com/FROGGS/p6-Foo-v1.0.0/master/META.info!
