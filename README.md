@@ -39,3 +39,9 @@ https://raw.githubusercontent.com/tokuhirom/p6-HTTP-Parser/master/META6.json [HT
 https://raw.githubusercontent.com/stmuk/p6-eco-readme/master/META.info [App::ecoreadme] not found on modules.perl6.org!
 All done!
 ```
+
+## Notes
+
+Another ways to debug is to view the build log:
+http://modules.perl6.org/log/update.log or JSON error log:
+http://ecosystem-api.p6c.org/errors.json
