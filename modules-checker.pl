@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Mojo::UserAgent;
 use JSON::Meth;
+use Mojo::DOM;
 use 5.010;
 
 my ( $REPO_URL, $SITE_URL ) = qw{
@@ -13,8 +14,12 @@ my ( $REPO_URL, $SITE_URL ) = qw{
 
 my $mods     = get_site_mods( $SITE_URL );
 my @eco_mods = get_eco_mods( $REPO_URL );
+
+check_empty_github_urls( $mods );
 check_duplicate_eco_mods( @eco_mods );
 
+my %seen;
+my $mu = Mojo::UserAgent->new;
 for ( @eco_mods ) {
     my $res = $mu->get( $_ )->res;
     if ( $res->code != 200 ) {
@@ -23,20 +28,32 @@ for ( @eco_mods ) {
     }
 
     my $name = eval { $res->body->$j->{name} };
-    if ( $@ ) { say "JSON decode error while doing $_\n"; next; }
-    unless ( $name ) { say "$_ doesn't have a `name`!\n"; next; }
+    if ( $@ ) { say "JSON decode error while doing $_"; next; }
+    unless ( $name ) { say "$_ doesn't have a `name`!"; next; }
 
-    say "$_ has the same name [$name] as $seen{$name}!\n"
+    say "$_ has the same name [$name] as $seen{$name}!"
         if defined $seen{$name};
     $seen{$name} = $_;
 
-    say "$_ [$name] not found on modules.perl6.org!\n"
+    say "$_ [$name] not found on modules.perl6.org!"
         unless $mods =~ /\Q$name\E/;
 }
 
 say "All done!";
 
 ############### SUBS
+
+sub check_empty_github_urls {
+    my $page = shift;
+
+    my $empties = Mojo::DOM->new( $page )
+        ->find('[href="https://github.com///"]')
+        ->to_array;
+
+    for ( @$empties ) {
+        say $_->all_text . ' is listed with an empty GitHub URL';
+    }
+}
 
 sub check_duplicate_eco_mods {
     my @mods = @_;
@@ -51,7 +68,9 @@ sub check_duplicate_eco_mods {
 sub get_eco_mods {
     my $repo_url = shift;
 
-    my @eco_mods = split /\n/,  $mu->get( $repo_url )->res->body;
+    my @eco_mods = split /\n/, Mojo::UserAgent->new
+        ->get( $repo_url )->res->body;
+
     say "Found " . @eco_mods . " modules listed in ecosystem.";
     return @eco_mods;
 }
